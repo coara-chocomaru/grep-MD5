@@ -1,1 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
 
+    <!-- ファイル選択ボタン -->
+    <Button
+        android:id="@+id/selectFileButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ファイル選択" />
+
+    <!-- Grepキーワード入力 -->
+    <EditText
+        android:id="@+id/grepInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/selectFileButton"
+        android:hint="検索するキーワード" />
+
+    <!-- grep実行ボタン -->
+    <Button
+        android:id="@+id/grepButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="grep実行"
+        android:layout_below="@id/grepInput"
+        android:layout_marginTop="8dp" />
+
+    <!-- MD5確認ボタン -->
+    <Button
+        android:id="@+id/md5Button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="MD5確認"
+        android:layout_below="@id/grepButton"
+        android:layout_marginTop="8dp" />
+
+    <!-- 結果表示用TextView (スクロール機能) -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/md5Button"
+        android:layout_marginTop="16dp">
+        <TextView
+            android:id="@+id/resultTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="結果が表示されます"
+            android:padding="10dp"
+            android:textIsSelectable="true"
+            android:longClickable="true"
+            android:scrollbars="vertical" />
+    </ScrollView>
+
+</RelativeLayout>
