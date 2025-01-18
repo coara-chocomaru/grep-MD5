@@ -8,7 +8,7 @@
 大容量は無理ですが小さいファイルのmd5とかを
 保存するので使ってます。
 実行結果のログは
-/sdcard/Android/data/com.example.grepmd5app/files/Documents/に保存されます。
+/sdcard/Android/data/com.coara.grepmd5app/files/Documents/に保存されます。
 
 
 選択したファイルも同じ場所にコピーされます
