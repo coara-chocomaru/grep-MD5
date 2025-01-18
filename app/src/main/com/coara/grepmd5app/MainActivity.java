@@ -49,11 +49,9 @@ public class MainActivity extends Activity {
         grepInput = findViewById(R.id.grepInput);
         resultTextView = findViewById(R.id.resultTextView);
 
-      
+        
         if (!checkPermissions()) {
             requestPermissions();
-        } else {
-            Toast.makeText(this, "必要な権限が付与されています。", Toast.LENGTH_SHORT).show();
         }
 
         
@@ -62,13 +60,13 @@ public class MainActivity extends Activity {
         md5Button.setOnClickListener(v -> checkMd5());
     }
 
-  
+    
     private boolean checkPermissions() {
         return checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
                 checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
     }
 
-    
+   
     private void requestPermissions() {
         requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
     }
@@ -85,7 +83,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    
     private void openFilePicker() {
         if (checkPermissions()) {
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -96,7 +93,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    
+   
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PICK_FILE_REQUEST && resultCode == RESULT_OK && data != null) {
@@ -118,7 +115,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    
+   
     private String getFileName(Uri uri) {
         String[] projection = {MediaStore.Images.Media.DISPLAY_NAME};
         Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
@@ -134,7 +131,7 @@ public class MainActivity extends Activity {
         return null;
     }
 
-    
+  
     private File copyFileToAppStorage(Uri fileUri, String fileName) throws IOException {
         InputStream inputStream = getContentResolver().openInputStream(fileUri);
         File copiedFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), fileName);
@@ -150,7 +147,7 @@ public class MainActivity extends Activity {
         return copiedFile;
     }
 
-    
+  
     private void executeGrep() {
         if (selectedFile == null || grepInput.getText().toString().isEmpty()) {
             resultTextView.setText("ファイルとキーワードを選択してください。");
