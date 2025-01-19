@@ -16,11 +16,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up java
+      - name: Set up JDK 21 (Temurin)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21' 
+          java-version: '21'
 
       - name: chmod
         run: chmod +x ./gradlew
@@ -33,11 +33,27 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      - name: get base name
+        run: |
+          echo "version=v$(grep versionName app/build.gradle | awk -F\" '{print $2}')"
+          echo "commit=$(echo ${{ github.sha }} | cut -c-7)"
+          echo "repo=$(echo ${GITHUB_REPOSITORY#$GITHUB_REPOSITORY_OWNER/})"
+          echo "timestamp=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
+        id: version-info
+
       - name: Build APK
         run: ./gradlew assembleRelease
 
-      - name: Upload APK as artifact
+      - name: Create ZIP file with APK
+        run: |
+          ZIP_NAME="${{ env.repo }}-v${{ env.version }}-${{ env.commit }}-${{ env.timestamp }}.zip"
+          mkdir -p output
+          cp app/build/outputs/apk/release/app-release.apk output/
+          zip -r $ZIP_NAME output
+          mv $ZIP_NAME $GITHUB_ENV['ZIP_FILE_PATH']  # Or directly upload the ZIP file
+
+      - name: Upload ZIP file as artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: app/build/outputs/apk/release/app-release.apk
+          path: ${{ env.ZIP_FILE_PATH }}
