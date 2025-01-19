@@ -51,9 +51,13 @@ jobs:
 
       - name: Create ZIP file with APK
         run: |
-        
+          
           ZIP_NAME="${{ env.ZIP_NAME }}"
-          zip -j "$ZIP_NAME" app/build/outputs/apk/release/app-release.apk
+          cp app/build/outputs/apk/release/app-release.apk $ZIP_NAME  # ZIP化する対象のapkをコピー
+
+          
+          zip "$ZIP_NAME" app-release.apk
+          rm app-release.apk
 
       - name: Upload the generated ZIP file as an artifact
         uses: actions/upload-artifact@v4
