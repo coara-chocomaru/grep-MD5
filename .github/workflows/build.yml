@@ -22,7 +22,7 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: chmod
+      - name: chmod +x
         run: chmod +x ./gradlew
 
       - name: Cache Gradle dependencies
@@ -33,7 +33,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: get base name
+      - name: Get version, commit, repo info
         run: |
           echo "version=v$(grep versionName app/build.gradle | awk -F\" '{print $2}')"
           echo "commit=$(echo ${{ github.sha }} | cut -c-7)"
@@ -49,7 +49,7 @@ jobs:
           ZIP_NAME="${{ env.repo }}-v${{ env.version }}-${{ env.commit }}-${{ env.timestamp }}.zip"
           mkdir -p output
           cp app/build/outputs/apk/release/app-release.apk output/
-          zip -r $ZIP_NAME output
+          zip -r $ZIP_NAME output  
           mv $ZIP_NAME $GITHUB_ENV['ZIP_FILE_PATH']  # Or directly upload the ZIP file
 
       - name: Upload ZIP file as artifact
