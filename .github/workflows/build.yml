@@ -60,8 +60,8 @@ jobs:
           if [ -f "app/build/outputs/apk/release/app-release.apk" ]; then
             echo "APK found, creating ZIP..."
             ZIP_NAME="${{ env.ZIP_NAME }}"
-            # APKファイルを直接ZIP化
-            zip -j "$ZIP_NAME" app/build/outputs/apk/release/app-release.apk
+            # APKファイルだけをZIPに追加（ディレクトリ構造なし）
+            zip "$ZIP_NAME" app/build/outputs/apk/release/app-release.apk
           else
             echo "APK file not found, exiting."
             exit 1
