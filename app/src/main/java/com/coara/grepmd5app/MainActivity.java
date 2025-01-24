@@ -46,36 +46,32 @@ public class MainActivity extends Activity {
         Button selectFileButton = findViewById(R.id.selectFileButton);
         Button grepButton = findViewById(R.id.grepButton);
         Button md5Button = findViewById(R.id.md5Button);
-        Button clearTempFilesButton = new Button(this);
-        clearTempFilesButton.setText("一時ファイルクリア");
-
         grepInput = findViewById(R.id.grepInput);
         resultTextView = findViewById(R.id.resultTextView);
 
-        // 権限確認
+        
         if (!checkPermissions()) {
             requestPermissions();
         }
 
-
+        
         selectFileButton.setOnClickListener(v -> openFilePicker());
         grepButton.setOnClickListener(v -> executeGrep());
         md5Button.setOnClickListener(v -> checkMd5());
-        clearTempFilesButton.setOnClickListener(v -> clearTemporaryFiles());
-
-        
-        findViewById(R.id.buttonLayout).addView(clearTempFilesButton);
     }
 
+    
     private boolean checkPermissions() {
         return checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
                 checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
     }
 
+   
     private void requestPermissions() {
         requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
     }
 
+    
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         if (requestCode == PERMISSION_REQUEST_CODE) {
@@ -97,6 +93,7 @@ public class MainActivity extends Activity {
         }
     }
 
+   
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PICK_FILE_REQUEST && resultCode == RESULT_OK && data != null) {
@@ -118,6 +115,7 @@ public class MainActivity extends Activity {
         }
     }
 
+   
     private String getFileName(Uri uri) {
         String[] projection = {MediaStore.Images.Media.DISPLAY_NAME};
         Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
@@ -133,9 +131,10 @@ public class MainActivity extends Activity {
         return null;
     }
 
+  
     private File copyFileToAppStorage(Uri fileUri, String fileName) throws IOException {
         InputStream inputStream = getContentResolver().openInputStream(fileUri);
-        File copiedFile = new File(getFilesDir(), fileName);
+        File copiedFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), fileName);
 
         try (FileOutputStream outputStream = new FileOutputStream(copiedFile)) {
             byte[] buffer = new byte[4096];
@@ -148,6 +147,7 @@ public class MainActivity extends Activity {
         return copiedFile;
     }
 
+  
     private void executeGrep() {
         if (selectedFile == null || grepInput.getText().toString().isEmpty()) {
             resultTextView.setText("ファイルとキーワードを選択してください。");
@@ -168,6 +168,7 @@ public class MainActivity extends Activity {
         @Override
         protected void onPostExecute(String result) {
             resultTextView.setText(result);
+            saveLog("grep_log", result);
         }
     }
 
@@ -188,16 +189,58 @@ public class MainActivity extends Activity {
         return result.toString();
     }
 
-    private void clearTemporaryFiles() {
-        File dir = getFilesDir(); 
-        if (dir.exists() && dir.isDirectory()) {
-            File[] files = dir.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    file.delete();
-                }
-            }
+    private void checkMd5() {
+        if (selectedFile == null) {
+            resultTextView.setText("ファイルを選択してください。");
+            return;
         }
-        Toast.makeText(this, "一時ファイルを消去しました。", Toast.LENGTH_SHORT).show();
+        new Md5Task().execute(selectedFile);
+    }
+
+    private class Md5Task extends AsyncTask<File, Void, String> {
+        @Override
+        protected String doInBackground(File... files) {
+            return getMd5Checksum(files[0]);
+        }
+
+        @Override
+        protected void onPostExecute(String md5) {
+            resultTextView.setText("MD5: " + md5);
+            saveLog("md5sum_log", md5);
+        }
+    }
+
+    private String getMd5Checksum(File file) {
+        if (!file.exists() || !file.isFile()) {
+            return "エラー: ファイルが見つかりません。";
+        }
+        try {
+            MessageDigest digest = MessageDigest.getInstance("MD5");
+            FileInputStream fis = new FileInputStream(file);
+            byte[] byteArray = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = fis.read(byteArray)) != -1) {
+                digest.update(byteArray, 0, bytesRead);
+            }
+            byte[] md5Bytes = digest.digest();
+            StringBuilder sb = new StringBuilder();
+            for (byte b : md5Bytes) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            return "エラー: " + e.getMessage();
+        }
+    }
+
+    private void saveLog(String logType, String content) {
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        File logFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), logType + "_" + timestamp + ".txt");
+
+        try (FileWriter writer = new FileWriter(logFile, true)) {
+            writer.write(content + "\n");
+        } catch (IOException e) {
+            Log.e("MainActivity", "ログ保存エラー", e);
+        }
     }
 }
