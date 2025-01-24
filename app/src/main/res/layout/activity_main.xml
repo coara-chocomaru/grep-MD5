@@ -1,73 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:padding="16dp">
 
     <!-- ファイル選択ボタン -->
     <Button
         android:id="@+id/selectFileButton"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="ファイル選択"
-        android:contentDescription="ファイルを選択するボタン" />
+        android:text="ファイル選択" />
 
-    <!-- キーワード入力フィールド -->
+    <!-- Grepキーワード入力 -->
     <EditText
         android:id="@+id/grepInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/selectFileButton"
-        android:layout_marginTop="8dp"
-        android:hint="検索するキーワードを入力"
-        android:contentDescription="Grep用キーワード入力欄" />
+        android:hint="キーワードを入力"
+        android:inputType="text" />
 
-    <!-- grep実行ボタン -->
+    <!-- Grep実行ボタン -->
     <Button
         android:id="@+id/grepButton"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/grepInput"
-        android:layout_marginTop="8dp"
-        android:text="grep実行"
-        android:contentDescription="Grep処理を実行するボタン" />
+        android:text="Grep実行" />
 
-    <!-- MD5確認ボタン -->
+    <!-- MD5チェックボタン -->
     <Button
         android:id="@+id/md5Button"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/grepButton"
-        android:layout_marginTop="8dp"
-        android:text="MD5確認"
-        android:contentDescription="MD5チェックを実行するボタン" />
+        android:text="MD5チェック" />
 
-    <!-- 一時ファイルクリアボタン用レイアウト -->
+    <!-- 結果表示用のTextView -->
+    <TextView
+        android:id="@+id/resultTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="結果が表示されます"
+        android:textSize="16sp"
+        android:layout_marginTop="16dp" />
+
+    <!-- 一時ファイルクリアボタン -->
     <LinearLayout
         android:id="@+id/buttonLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/md5Button"
-        android:layout_marginTop="8dp"
-        android:orientation="horizontal" />
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp">
+        <!-- ここに動的に追加されるボタンが表示されます -->
+    </LinearLayout>
 
-    <!-- 結果表示エリア -->
-    <ScrollView
-        android:id="@+id/scrollView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_below="@id/buttonLayout"
-        android:layout_marginTop="16dp"
-        android:layout_alignParentBottom="true">
-        <TextView
-            android:id="@+id/resultTextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="結果が表示されます"
-            android:padding="10dp"
-            android:textIsSelectable="true"
-            android:longClickable="true"
-            android:scrollbars="vertical" />
-    </ScrollView>
-
-</RelativeLayout>
+</LinearLayout>
