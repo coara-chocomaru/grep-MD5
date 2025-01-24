@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
-
+    <!-- ファイル選択ボタン -->
     <Button
         android:id="@+id/selectFileButton"
         android:layout_width="wrap_content"
@@ -12,7 +12,7 @@
         android:text="ファイル選択"
         android:contentDescription="ファイルを選択するボタン" />
 
-
+    <!-- キーワード入力フィールド -->
     <EditText
         android:id="@+id/grepInput"
         android:layout_width="match_parent"
@@ -22,30 +22,41 @@
         android:hint="検索するキーワードを入力"
         android:contentDescription="Grep用キーワード入力欄" />
 
+    <!-- grep実行ボタン -->
     <Button
         android:id="@+id/grepButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="grep実行"
         android:layout_below="@id/grepInput"
         android:layout_marginTop="8dp"
+        android:text="grep実行"
         android:contentDescription="Grep処理を実行するボタン" />
 
+    <!-- MD5確認ボタン -->
     <Button
         android:id="@+id/md5Button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="MD5確認"
         android:layout_below="@id/grepButton"
         android:layout_marginTop="8dp"
+        android:text="MD5確認"
         android:contentDescription="MD5チェックを実行するボタン" />
 
-  
+    <!-- 一時ファイルクリアボタン用レイアウト -->
+    <LinearLayout
+        android:id="@+id/buttonLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/md5Button"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal" />
+
+    <!-- 結果表示エリア -->
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_below="@id/md5Button"
+        android:layout_below="@id/buttonLayout"
         android:layout_marginTop="16dp"
         android:layout_alignParentBottom="true">
         <TextView
