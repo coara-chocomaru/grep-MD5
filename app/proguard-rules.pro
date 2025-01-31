@@ -44,8 +44,6 @@
 
 -renamesourcefileattribute SourceFile
 
--dontshrink
--dontoptimize
 -keep class ** { *; }
 
 -allowaccessmodification
