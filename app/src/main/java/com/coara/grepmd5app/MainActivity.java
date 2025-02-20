@@ -18,9 +18,6 @@ import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,9 +31,14 @@ public class MainActivity extends Activity {
 
     private static final int PICK_FILE_REQUEST = 1;
     private static final int PERMISSION_REQUEST_CODE = 100;
-    private File selectedFile;
+    private Uri selectedFileUri;
     private EditText grepInput;
     private TextView resultTextView;
+    private Uri lastMd5Uri;
+    private String lastMd5Result;
+    private Uri lastGrepUri;
+    private String lastGrepKeyword;
+    private String lastGrepResult;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,29 +51,23 @@ public class MainActivity extends Activity {
         grepInput = findViewById(R.id.grepInput);
         resultTextView = findViewById(R.id.resultTextView);
 
-        
         if (!checkPermissions()) {
             requestPermissions();
         }
 
-        
         selectFileButton.setOnClickListener(v -> openFilePicker());
         grepButton.setOnClickListener(v -> executeGrep());
         md5Button.setOnClickListener(v -> checkMd5());
     }
 
-    
     private boolean checkPermissions() {
-        return checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-                checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        return checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
     }
 
-   
     private void requestPermissions() {
-        requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
+        requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
     }
 
-    
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         if (requestCode == PERMISSION_REQUEST_CODE) {
@@ -93,29 +89,20 @@ public class MainActivity extends Activity {
         }
     }
 
-   
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PICK_FILE_REQUEST && resultCode == RESULT_OK && data != null) {
-            try {
-                Uri selectedFileUri = data.getData();
-                String fileName = getFileName(selectedFileUri);
-
-                if (fileName == null) {
-                    Toast.makeText(this, "ファイル名が取得できませんでした。", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                File copiedFile = copyFileToAppStorage(selectedFileUri, fileName);
-                selectedFile = copiedFile;
-                Toast.makeText(this, "ファイルがコピーされました。", Toast.LENGTH_SHORT).show();
-            } catch (IOException e) {
-                Toast.makeText(this, "ファイルのコピーに失敗しました: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Uri fileUri = data.getData();
+            if (fileUri == null) {
+                Toast.makeText(this, "ファイルが選択されませんでした。", Toast.LENGTH_SHORT).show();
+                return;
             }
+            selectedFileUri = fileUri;
+            String fileName = getFileName(fileUri);
+            Toast.makeText(this, "ファイルが選択されました: " + (fileName != null ? fileName : "不明"), Toast.LENGTH_SHORT).show();
         }
     }
 
-   
     private String getFileName(Uri uri) {
         String[] projection = {MediaStore.Images.Media.DISPLAY_NAME};
         Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
@@ -131,38 +118,21 @@ public class MainActivity extends Activity {
         return null;
     }
 
-  
-    private File copyFileToAppStorage(Uri fileUri, String fileName) throws IOException {
-        InputStream inputStream = getContentResolver().openInputStream(fileUri);
-        File copiedFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), fileName);
-
-        try (FileOutputStream outputStream = new FileOutputStream(copiedFile)) {
-            byte[] buffer = new byte[4096];
-            int length;
-            while ((length = inputStream.read(buffer)) > 0) {
-                outputStream.write(buffer, 0, length);
-            }
-        }
-        if (inputStream != null) inputStream.close();
-        return copiedFile;
-    }
-
-  
     private void executeGrep() {
-        if (selectedFile == null || grepInput.getText().toString().isEmpty()) {
+        if (selectedFileUri == null || grepInput.getText().toString().isEmpty()) {
             resultTextView.setText("ファイルとキーワードを選択してください。");
             return;
         }
         String keyword = grepInput.getText().toString();
-        new GrepTask().execute(selectedFile, keyword);
+        new GrepTask().execute(selectedFileUri, keyword);
     }
 
     private class GrepTask extends AsyncTask<Object, Void, String> {
         @Override
         protected String doInBackground(Object... params) {
-            File file = (File) params[0];
+            Uri uri = (Uri) params[0];
             String keyword = (String) params[1];
-            return grepFile(file, keyword);
+            return grepFile(uri, keyword);
         }
 
         @Override
@@ -172,11 +142,16 @@ public class MainActivity extends Activity {
         }
     }
 
-    private String grepFile(File file, String keyword) {
+    private String grepFile(Uri uri, String keyword) {
+        if (lastGrepUri != null && lastGrepUri.equals(uri)
+                && lastGrepKeyword != null && lastGrepKeyword.equals(keyword)) {
+            return lastGrepResult;
+        }
         StringBuilder result = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+        Pattern pattern = Pattern.compile(keyword, Pattern.CASE_INSENSITIVE);
+        try (BufferedReader reader = new BufferedReader(
+                new java.io.InputStreamReader(getContentResolver().openInputStream(uri)))) {
             String line;
-            Pattern pattern = Pattern.compile(keyword, Pattern.CASE_INSENSITIVE);
             while ((line = reader.readLine()) != null) {
                 Matcher matcher = pattern.matcher(line);
                 if (matcher.find()) {
@@ -186,21 +161,24 @@ public class MainActivity extends Activity {
         } catch (IOException e) {
             result.append("エラー: ").append(e.getMessage());
         }
-        return result.toString();
+        lastGrepUri = uri;
+        lastGrepKeyword = keyword;
+        lastGrepResult = result.toString();
+        return lastGrepResult;
     }
 
     private void checkMd5() {
-        if (selectedFile == null) {
+        if (selectedFileUri == null) {
             resultTextView.setText("ファイルを選択してください。");
             return;
         }
-        new Md5Task().execute(selectedFile);
+        new Md5Task().execute(selectedFileUri);
     }
 
-    private class Md5Task extends AsyncTask<File, Void, String> {
+    private class Md5Task extends AsyncTask<Uri, Void, String> {
         @Override
-        protected String doInBackground(File... files) {
-            return getMd5Checksum(files[0]);
+        protected String doInBackground(Uri... uris) {
+            return getMd5Checksum(uris[0]);
         }
 
         @Override
@@ -210,24 +188,26 @@ public class MainActivity extends Activity {
         }
     }
 
-    private String getMd5Checksum(File file) {
-        if (!file.exists() || !file.isFile()) {
-            return "エラー: ファイルが見つかりません。";
-        }
-        try {
+    private String getMd5Checksum(Uri uri) {
+        try (InputStream is = getContentResolver().openInputStream(uri)) {
+            if (is == null) return "エラー: ファイルが開けません。";
+            if (lastMd5Uri != null && lastMd5Uri.equals(uri) && lastMd5Result != null) {
+                return lastMd5Result;
+            }
             MessageDigest digest = MessageDigest.getInstance("MD5");
-            FileInputStream fis = new FileInputStream(file);
-            byte[] byteArray = new byte[4096];
+            byte[] buffer = new byte[4096];
             int bytesRead;
-            while ((bytesRead = fis.read(byteArray)) != -1) {
-                digest.update(byteArray, 0, bytesRead);
+            while ((bytesRead = is.read(buffer)) != -1) {
+                digest.update(buffer, 0, bytesRead);
             }
             byte[] md5Bytes = digest.digest();
             StringBuilder sb = new StringBuilder();
             for (byte b : md5Bytes) {
                 sb.append(String.format("%02x", b));
             }
-            return sb.toString();
+            lastMd5Uri = uri;
+            lastMd5Result = sb.toString();
+            return lastMd5Result;
         } catch (Exception e) {
             return "エラー: " + e.getMessage();
         }
