@@ -215,7 +215,7 @@ public class MainActivity extends Activity {
 
     private void saveLog(String logType, String content) {
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        // 選択されたファイル名を取得し、ログファイル名に追加する
+
         String fileName = getFileName(selectedFileUri);
         if (fileName == null) {
             fileName = "unknown";
@@ -224,7 +224,7 @@ public class MainActivity extends Activity {
 
         try (FileWriter writer = new FileWriter(logFile, true)) {
             writer.write(content + "\n");
-            // ログ保存成功時にトーストで通知する
+            
             runOnUiThread(() -> Toast.makeText(MainActivity.this, "ログを保存しました！", Toast.LENGTH_SHORT).show());
         } catch (IOException e) {
             Log.e("MainActivity", "ログ保存エラー", e);
