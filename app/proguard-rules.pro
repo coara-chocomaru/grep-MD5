@@ -24,9 +24,6 @@
 
 -adaptclassstrings
 -repackageclasses ''
--keep class dummy.** { *; }
--keep class dummy.symboliclink.** { *; }
--keep class dummy.files.** { *; }
 
 -keepclassmembers class * {
     *;
