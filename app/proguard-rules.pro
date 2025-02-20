@@ -16,13 +16,10 @@
     public static *** e(...);
 }
 
--adaptresourcefilecontents **.xml
--adaptresourcefilenames **.png
-
 -classobfuscationdictionary obfuscation-dictionary.txt
 -renamesourcefileattribute SourceFile
 -keepattributes Exceptions, InnerClasses, Signature, Deprecated, EnclosingMethod
--optimizationpasses 3
+-optimizationpasses 8
 -mergeinterfacesaggressively
 
 -adaptclassstrings
