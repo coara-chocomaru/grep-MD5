@@ -1,19 +1,26 @@
-plugins {
+plugins { 
     id 'com.android.application'
 }
 
 android {
-    compileSdk 35
-    namespace 'com.coara.grepmd5app'
+    compileSdk = 35 
+
+    namespace = 'com.coara.grepmd5app'
 
     defaultConfig {
-        applicationId "com.coara.grepmd5app"
-        minSdk 21
-        targetSdk 24
-        versionCode 1
-        versionName "1.7"
+        minSdk = 21
+        targetSdk = 23
+        versionCode = 27
+        versionName = "1.8"
+        multiDexEnabled = true
+        proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
     }
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+    
     signingConfigs {
         release {
             storeFile file('test.jks')
@@ -24,27 +31,25 @@ android {
     }
 
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
         release {
-            signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            debuggable false
-            zipAlignEnabled true
-            multiDexEnabled true
+            signingConfig signingConfigs.release
         }
     }
 
-    packagingOptions {
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/NOTICE'
+    lint {
+        disable += ['ExpiredTargetSdkVersion', 'NewApi', 'Range', 'SetTextI18n', 'ScopedStorage', 'FieldCanBeLocal', 'GradleDependency']
     }
 
-    lintOptions {
-        disable 'ExpiredTargetSdkVersion'
+    buildFeatures {
+        viewBinding true
     }
 }
 
-dependencies {
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ["-Xlint:deprecation", "-Xlint:unchecked"]
 }
