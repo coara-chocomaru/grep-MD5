@@ -230,3 +230,4 @@ public class MainActivity extends Activity {
         Log.e("MainActivity", "ログ保存エラー", e);
     }
 }
+}
