@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -141,7 +142,6 @@ public class MainActivity extends Activity {
             saveLog("grep_log", result);
         }
     }
-
     private String grepFile(Uri uri, String keyword) {
         if (lastGrepUri != null && lastGrepUri.equals(uri)
                 && lastGrepKeyword != null && lastGrepKeyword.equals(keyword)) {
@@ -150,12 +150,14 @@ public class MainActivity extends Activity {
         StringBuilder result = new StringBuilder();
         Pattern pattern = Pattern.compile(keyword, Pattern.CASE_INSENSITIVE);
         try (BufferedReader reader = new BufferedReader(
-                new java.io.InputStreamReader(getContentResolver().openInputStream(uri)))) {
+                new InputStreamReader(getContentResolver().openInputStream(uri)))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                Matcher matcher = pattern.matcher(line);
+        
+                String filteredLine = line.replaceAll("[^A-Za-z0-9 ]", "");
+                Matcher matcher = pattern.matcher(filteredLine);
                 if (matcher.find()) {
-                    result.append(line).append("\n");
+                    result.append(filteredLine.trim()).append("\n");
                 }
             }
         } catch (IOException e) {
@@ -212,22 +214,19 @@ public class MainActivity extends Activity {
             return "エラー: " + e.getMessage();
         }
     }
-
     private void saveLog(String logType, String content) {
-        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            String fileName = getFileName(selectedFileUri);
+            if (fileName == null) {
+                fileName = "unknown";
+       }
+    File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+    File logFile = new File(downloadDir, logType + "_" + fileName + "_" + timestamp + ".txt");
 
-        String fileName = getFileName(selectedFileUri);
-        if (fileName == null) {
-            fileName = "unknown";
-        }
-        File logFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), logType + "_" + fileName + "_" + timestamp + ".txt");
-
-        try (FileWriter writer = new FileWriter(logFile, true)) {
-            writer.write(content + "\n");
-            
-            runOnUiThread(() -> Toast.makeText(MainActivity.this, "ログを保存しました！", Toast.LENGTH_SHORT).show());
-        } catch (IOException e) {
-            Log.e("MainActivity", "ログ保存エラー", e);
-        }
+    try (FileWriter writer = new FileWriter(logFile, true)) {
+        writer.write(content + "\n");
+        runOnUiThread(() -> Toast.makeText(MainActivity.this, "ログを保存しました！", Toast.LENGTH_SHORT).show());
+    } catch (IOException e) {
+        Log.e("MainActivity", "ログ保存エラー", e);
     }
 }
